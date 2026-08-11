@@ -11,6 +11,7 @@
 #include <direct.h>
 
 using namespace std;
+using namespace sf;
 
 // ==========================================
 // 1. DATA STRUCTURES
@@ -573,87 +574,87 @@ double calculateSavingsProfit(int accNumber) {
 // ==========================================
 
 struct Button {
-    sf::RectangleShape rect;
-    sf::Text text;
+    RectangleShape rect;
+    Text text;
     bool isHovered = false;
 
     Button() {}
-    Button(float x, float y, float w, float h, string label, sf::Font& font, sf::Color bgColor) {
+    Button(float x, float y, float w, float h, string label, Font& font, Color bgColor) {
         rect.setPosition(x, y);
-        rect.setSize(sf::Vector2f(w, h));
+        rect.setSize(Vector2f(w, h));
         rect.setFillColor(bgColor);
         rect.setOutlineThickness(1);
-        rect.setOutlineColor(sf::Color(200, 200, 200));
+        rect.setOutlineColor(Color(200, 200, 200));
 
         text.setFont(font);
         text.setString(label);
         text.setCharacterSize(18);
-        text.setFillColor(sf::Color::White);
+        text.setFillColor(Color::White);
         
-        sf::FloatRect textBounds = text.getLocalBounds();
+        FloatRect textBounds = text.getLocalBounds();
         text.setPosition(x + (w - textBounds.width) / 2, y + (h - textBounds.height) / 2 - 5);
     }
 
-    void update(sf::Vector2f mousePos) {
+    void update(Vector2f mousePos) {
         isHovered = rect.getGlobalBounds().contains(mousePos);
         if (isHovered) {
-            sf::Color c = rect.getFillColor();
-            rect.setOutlineColor(sf::Color::White);
+            Color c = rect.getFillColor();
+            rect.setOutlineColor(Color::White);
             rect.setOutlineThickness(2);
         } else {
-            rect.setOutlineColor(sf::Color(200, 200, 200));
+            rect.setOutlineColor(Color(200, 200, 200));
             rect.setOutlineThickness(1);
         }
     }
 
-    void draw(sf::RenderWindow& window) {
+    void draw(RenderWindow& window) {
         window.draw(rect);
         window.draw(text);
     }
 };
 
 struct TextBox {
-    sf::RectangleShape rect;
-    sf::Text text;
-    sf::Text placeholderText;
+    RectangleShape rect;
+    Text text;
+    Text placeholderText;
     string content;
     bool isSelected = false;
     bool isPassword = false;
     int maxLength = 20;
 
     TextBox() {}
-    TextBox(float x, float y, float w, float h, string placeholder, sf::Font& font, bool password = false) {
+    TextBox(float x, float y, float w, float h, string placeholder, Font& font, bool password = false) {
         rect.setPosition(x, y);
-        rect.setSize(sf::Vector2f(w, h));
-        rect.setFillColor(sf::Color::White);
+        rect.setSize(Vector2f(w, h));
+        rect.setFillColor(Color::White);
         rect.setOutlineThickness(1);
-        rect.setOutlineColor(sf::Color(150, 150, 150));
+        rect.setOutlineColor(Color(150, 150, 150));
 
         isPassword = password;
         
         placeholderText.setFont(font);
         placeholderText.setString(placeholder);
         placeholderText.setCharacterSize(16);
-        placeholderText.setFillColor(sf::Color(150, 150, 150));
+        placeholderText.setFillColor(Color(150, 150, 150));
         placeholderText.setPosition(x + 10, y + 10);
 
         text.setFont(font);
         text.setCharacterSize(16);
-        text.setFillColor(sf::Color::Black);
+        text.setFillColor(Color::Black);
         text.setPosition(x + 10, y + 10);
     }
 
-    void update(sf::Vector2f mousePos, bool clicked) {
+    void update(Vector2f mousePos, bool clicked) {
         if (clicked) {
             isSelected = rect.getGlobalBounds().contains(mousePos);
-            rect.setOutlineColor(isSelected ? sf::Color(0, 120, 215) : sf::Color(150, 150, 150));
+            rect.setOutlineColor(isSelected ? Color(0, 120, 215) : Color(150, 150, 150));
             rect.setOutlineThickness(isSelected ? 2 : 1);
         }
     }
 
-    void handleInput(sf::Event event) {
+    void handleInput(Event event) {
         if (!isSelected) return;
-        if (event.type == sf::Event::TextEntered) {
+        if (event.type == Event::TextEntered) {
             if (event.text.unicode == 8 && content.length() > 0) { // Backspace
                 content.pop_back();
             } else if (event.text.unicode >= 32 && event.text.unicode < 127 && content.length() < maxLength) {
@@ -669,7 +670,7 @@ struct TextBox {
         }
     }
 
-    void draw(sf::RenderWindow& window) {
+    void draw(RenderWindow& window) {
         window.draw(rect);
         if (content.empty() && !isSelected) {
             window.draw(placeholderText);
@@ -679,8 +680,8 @@ struct TextBox {
     }
 };
 
-void drawText(sf::RenderWindow& win, string str, float x, float y, sf::Font& font, int size, sf::Color color) {
-    sf::Text text;
+void drawText(RenderWindow& win, string str, float x, float y, Font& font, int size, Color color) {
+    Text text;
     text.setFont(font);
     text.setString(str);
     text.setCharacterSize(size);
@@ -707,10 +708,10 @@ enum AppState {
 };
 
 int main() {
-    sf::RenderWindow window(sf::VideoMode(900, 600), "Banking System & ATM Simulation");
+    RenderWindow window(VideoMode(900, 600), "Banking System & ATM Simulation");
     window.setFramerateLimit(60);
 
-    sf::Font font;
+    Font font;
     if (!font.loadFromFile("C:/Windows/Fonts/arial.ttf")) {
         cout << "Failed to load font\n";
         return -1;
@@ -719,14 +720,14 @@ int main() {
     AppState state = MAIN_MENU;
     int loggedInAccNumber = -1;
     string systemMessage = "";
-    sf::Color primaryColor(26, 54, 80); // Professional Navy Blue
-    sf::Color bg(239, 242, 245); // Light Gray
+    Color primaryColor(26, 54, 80); // Professional Navy Blue
+    Color bg(239, 242, 245); // Light Gray
 
     // --- UI Elements ---
     Button btnAdmin(300, 200, 300, 50, "Bank Administration", font, primaryColor);
     Button btnATM(300, 280, 300, 50, "ATM Customer", font, primaryColor);
-    Button btnExit(300, 360, 300, 50, "Exit System", font, sf::Color(180, 50, 50));
-    Button btnBack(20, 20, 100, 40, "Back", font, sf::Color(100, 100, 100));
+    Button btnExit(300, 360, 300, 50, "Exit System", font, Color(180, 50, 50));
+    Button btnBack(20, 20, 100, 40, "Back", font, Color(100, 100, 100));
 
     TextBox txtAdminPass(300, 250, 300, 40, "Admin Password", font, true);
     Button btnAdminLogin(300, 320, 300, 50, "Login", font, primaryColor);
@@ -759,14 +760,14 @@ int main() {
     Button btnAction(300, 380, 300, 50, "Submit", font, primaryColor);
 
     while (window.isOpen()) {
-        sf::Vector2i m = sf::Mouse::getPosition(window);
-        sf::Vector2f mousePos(m.x, m.y);
+        Vector2i m = Mouse::getPosition(window);
+        Vector2f mousePos(m.x, m.y);
         bool clicked = false;
         
-        sf::Event event;
+        Event event;
         while (window.pollEvent(event)) {
-            if (event.type == sf::Event::Closed) window.close();
-            if (event.type == sf::Event::MouseButtonPressed && event.mouseButton.button == sf::Mouse::Left) clicked = true;
+            if (event.type == Event::Closed) window.close();
+            if (event.type == Event::MouseButtonPressed && event.mouseButton.button == Mouse::Left) clicked = true;
             
             if (state == ADMIN_LOGIN) txtAdminPass.handleInput(event);
             if (state == ADMIN_CREATE_ACC) { txtAccName.handleInput(event); txtCnic.handleInput(event); txtPhone.handleInput(event); txtAddress.handleInput(event); txtPin.handleInput(event); }
@@ -878,13 +879,13 @@ int main() {
         window.clear(bg);
         
         // Header
-        sf::RectangleShape header(sf::Vector2f(900, 80));
+        RectangleShape header(Vector2f(900, 80));
         header.setFillColor(primaryColor);
         window.draw(header);
-        drawText(window, "Global Bank System", 20, 25, font, 28, sf::Color::White);
+        drawText(window, "Global Bank System", 20, 25, font, 28, Color::White);
         
         if (!systemMessage.empty()) {
-            drawText(window, systemMessage, 300, 520, font, 18, sf::Color::Red);
+            drawText(window, systemMessage, 300, 520, font, 18, Color::Red);
         }
 
         if (state != MAIN_MENU) btnBack.draw(window);
@@ -905,7 +906,7 @@ int main() {
             vector<Account> accs = loadAccounts();
             int y = 150;
             for (size_t i = 0; i < accs.size() && i < 10; i++) {
-                drawText(window, "Acc: " + to_string(accs[i].accNumber) + " | " + accs[i].holderName + " | Bal: " + formatMoney(accs[i].balance) + " | " + (accs[i].isActive ? "Active" : "Locked"), 100, y, font, 16, sf::Color::Black);
+                drawText(window, "Acc: " + to_string(accs[i].accNumber) + " | " + accs[i].holderName + " | Bal: " + formatMoney(accs[i].balance) + " | " + (accs[i].isActive ? "Active" : "Locked"), 100, y, font, 16, Color::Black);
                 y += 30;
             }
         } else if (state == ATM_LOGIN) {
@@ -916,7 +917,7 @@ int main() {
             string n = ""; double bal = 0;
             for (size_t i=0; i<accounts.size(); i++) { if (accounts[i].accNumber == loggedInAccNumber) { n = accounts[i].holderName; bal = accounts[i].balance; break; } }
             drawText(window, "Welcome, " + n, 350, 100, font, 24, primaryColor);
-            drawText(window, "Current Balance: " + formatMoney(bal), 320, 400, font, 22, sf::Color(0, 120, 0));
+            drawText(window, "Current Balance: " + formatMoney(bal), 320, 400, font, 22, Color(0, 120, 0));
             btnWithdraw.draw(window); btnDeposit.draw(window); btnTransfer.draw(window); btnMini.draw(window);
         } else if (state == ATM_WITHDRAW || state == ATM_DEPOSIT || state == ATM_TRANSFER) {
             string title = state == ATM_WITHDRAW ? "Withdraw Cash" : (state == ATM_DEPOSIT ? "Deposit Cash" : "Transfer Funds");
@@ -930,7 +931,7 @@ int main() {
             int y = 150, count = 0;
             for (int i = all.size() - 1; i >= 0 && count < 5; i--) {
                 if (all[i].accNumber == loggedInAccNumber) {
-                    drawText(window, all[i].dateTime + " | " + all[i].type + " | " + formatMoney(all[i].amount) + " | Bal: " + formatMoney(all[i].balanceAfter), 100, y, font, 16, sf::Color::Black);
+                    drawText(window, all[i].dateTime + " | " + all[i].type + " | " + formatMoney(all[i].amount) + " | Bal: " + formatMoney(all[i].balanceAfter), 100, y, font, 16, Color::Black);
                     y += 35;
                     count++;
                 }
@@ -941,3 +942,4 @@ int main() {
     }
     return 0;
 }
+
