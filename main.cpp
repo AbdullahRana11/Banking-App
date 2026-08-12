@@ -1,4 +1,4 @@
-﻿#include <SFML/Graphics.hpp>
+#include <SFML/Graphics.hpp>
 #include <SFML/Window.hpp>
 #include <iostream>
 #include <fstream>
@@ -13,7 +13,7 @@
 using namespace std;
 using namespace sf;
 
-// Abdullah: setting up the basic data structures here. Huzaifa, make sure your file parser matches this exact order!
+// Core data structures (need to match the text file format exactly)
 
 struct Account {
     int accNumber;
@@ -62,9 +62,9 @@ struct AuditEntry {
     string details;
 };
 
-// --- Security and helper funcs (Abdullah's part) ---
+// Helper functions for security and formatting
 
-const int PIN_XOR_KEY = 5839; // Abdullah: DO NOT change this key or old accounts will break and passwords will fail
+const int PIN_XOR_KEY = 5839; // Secure key for PIN obfuscation
 const double DAILY_WITHDRAW_LIMIT = 50000.0;
 const double OTP_THRESHOLD = 50000.0;
 const int MAX_PIN_ATTEMPTS = 3;
@@ -137,8 +137,7 @@ void ensureDirectory(const string& path) {
     _mkdir(path.c_str());
 }
 
-// --- Huzaifa's File Handling Code ---
-// Huzaifa: making sure all files save properly so we don't lose data when the app closes
+// File Handling: Saving and loading data from txt files
 const char DELIM = '|';
 
 // Forward declaration of audit log to use in account logic
@@ -330,7 +329,7 @@ void generateReceipt(const Transaction& t, const string& holderName) {
     file.close();
 }
 
-// --- Bank Admin Module (Huzaifa) ---
+// Bank Admin Module: Handles account creation and management
 
 int createAccount(const string& name, const string& cnic, const string& phone,
     const string& address, const string& accType, double initialDeposit, int pin) {
@@ -424,8 +423,7 @@ bool toggleAccountStatus(int accNumber, bool activate) {
     return false;
 }
 
-// --- ATM Customer Module (Abdullah) ---
-// Abdullah: this handles all the ATM math and daily limits
+// ATM Module: Handles transactions, limits, and authentication
 
 int authenticateUser(int accNumber, int enteredPin) {
     vector<Account> accounts = loadAccounts();
@@ -561,8 +559,7 @@ double calculateSavingsProfit(int accNumber) {
     }
     return 0.0;
 }
-// --- SFML GUI Stuff ---
-// Abdullah: used AI to help structure these UI classes so we didn't have to do the annoying math for the mouse clicks manually
+// UI Components (Generated with AI assistance for the mouse click math)
 
 struct Button {
     RectangleShape rect;
@@ -680,8 +677,7 @@ void drawText(RenderWindow& win, string str, float x, float y, Font& font, int s
     text.setPosition(x, y);
     win.draw(text);
 }
-// --- MAIN EVENT LOOP (Abdullah) ---
-// Abdullah: connecting everything together here.
+// Main Application and GUI Event Loop
 
 enum AppState {
     MAIN_MENU,
@@ -713,7 +709,7 @@ int main() {
     Color primaryColor(26, 54, 80); // Professional Navy Blue
     Color bg(239, 242, 245); // Light Gray
 
-    // setting up all the buttons (took forever to align these properly)
+    // Initialize all UI buttons
     Button btnAdmin(300, 200, 300, 50, "Bank Administration", font, primaryColor);
     Button btnATM(300, 280, 300, 50, "ATM Customer", font, primaryColor);
     Button btnExit(300, 360, 300, 50, "Exit System", font, Color(180, 50, 50));
@@ -768,8 +764,7 @@ int main() {
             }
         }
 
-        // Huzaifa: bro make sure the back button doesn't crash here
-        // Abdullah: fixed it, it resets the state properly now
+        // Handle back button clicks and reset state
         if (state != MAIN_MENU) btnBack.update(mousePos);
         if (clicked && state != MAIN_MENU && btnBack.isHovered) {
             systemMessage = "";
@@ -866,7 +861,7 @@ int main() {
             }
         }
 
-        // Abdullah: finally drawing everything to the screen
+        // Render all elements to the screen
         window.clear(bg);
         
         // Header
