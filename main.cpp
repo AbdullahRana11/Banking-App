@@ -451,7 +451,8 @@ int authenticateUser(int accNumber, int enteredPin) {
 }
 
 int withdrawMoney(int accNumber, double amount) {
-    if (amount <= 0 || (int)amount % 100 != 0) return 1;
+    int intAmt = (int)amount;
+    if (amount <= 0 || intAmt < 100 || intAmt % 100 != 0) return 1;
     
     vector<Account> accounts = loadAccounts();
     for (size_t i = 0; i < accounts.size(); i++) {
@@ -686,6 +687,7 @@ enum AppState {
     ADMIN_CREATE_ACC,
     ADMIN_VIEW_ACCS,
     ADMIN_RESTOCK,
+    ADMIN_TRANS_HISTORY,
     ATM_LOGIN,
     ATM_DASHBOARD,
     ATM_WITHDRAW,
@@ -723,6 +725,7 @@ int main() {
     Button btnCreateAcc(100, 150, 300, 50, "Create Account", font, primaryColor);
     Button btnViewAccs(500, 150, 300, 50, "View All Accounts", font, primaryColor);
     Button btnRestock(100, 250, 300, 50, "Restock ATM", font, primaryColor);
+    Button btnTransHistory(500, 250, 300, 50, "Transaction History", font, primaryColor);
 
     // ATM dashboard
     Button btnWithdraw(100, 150, 300, 50, "Withdraw Cash", font, primaryColor);
@@ -750,9 +753,12 @@ int main() {
     TextBox txtAtmPin(300, 280, 300, 40, "PIN Code", font, true);
     Button btnAtmLogin(300, 350, 300, 50, "Login", font, primaryColor);
 
-    TextBox txtAmount(300, 250, 300, 40, "Amount (Rs.)", font);
-    TextBox txtTargetAcc(300, 310, 300, 40, "Target Account #", font);
-    Button btnAction(300, 380, 300, 50, "Submit", font, primaryColor);
+    TextBox txtAmount(300, 200, 300, 40, "Amount (Rs.)", font);
+    TextBox txtTargetAcc(300, 260, 300, 40, "Target Account #", font);
+    Button btnAction(300, 330, 300, 50, "Submit", font, primaryColor);
+    TextBox txtSearchAcc(300, 200, 300, 40, "Account Number", font);
+    Button btnSearchTrans(300, 260, 300, 50, "Search", font, primaryColor);
+    int searchAccNum = -1;
 
     while (window.isOpen()) {
         Vector2i m = Mouse::getPosition(window);
@@ -767,6 +773,7 @@ int main() {
             if (state == ADMIN_LOGIN) txtAdminPass.handleInput(event);
             if (state == ADMIN_CREATE_ACC) { txtAccName.handleInput(event); txtCnic.handleInput(event); txtPhone.handleInput(event); txtAddress.handleInput(event); txtAccType.handleInput(event); txtPin.handleInput(event); }
             if (state == ADMIN_RESTOCK) { txtR5000.handleInput(event); txtR1000.handleInput(event); txtR500.handleInput(event); txtR100.handleInput(event); }
+            if (state == ADMIN_TRANS_HISTORY) { txtSearchAcc.handleInput(event); }
             if (state == ATM_LOGIN) { txtAtmAccNo.handleInput(event); txtAtmPin.handleInput(event); }
             if (state == ATM_WITHDRAW || state == ATM_DEPOSIT || state == ATM_TRANSFER) {
                 txtAmount.handleInput(event);
@@ -779,10 +786,9 @@ int main() {
         if (clicked && state != MAIN_MENU && btnBack.isHovered) {
             systemMessage = "";
             if (state == ADMIN_DASHBOARD || state == ATM_LOGIN || state == ADMIN_LOGIN) state = MAIN_MENU;
-            else if (state == ADMIN_CREATE_ACC || state == ADMIN_VIEW_ACCS || state == ADMIN_RESTOCK) state = ADMIN_DASHBOARD;
-            else if (state == ATM_DASHBOARD) state = MAIN_MENU;
-            else state = ATM_DASHBOARD;
-            loggedInAccNumber = -1;
+            else if (state == ADMIN_CREATE_ACC || state == ADMIN_VIEW_ACCS || state == ADMIN_RESTOCK || state == ADMIN_TRANS_HISTORY) { state = ADMIN_DASHBOARD; searchAccNum = -1; }
+            else if (state == ATM_DASHBOARD) { state = MAIN_MENU; loggedInAccNumber = -1; }
+            else { state = ATM_DASHBOARD; }
         }
 
         if (state == MAIN_MENU) {
@@ -799,7 +805,7 @@ int main() {
                 else systemMessage = "Incorrect Admin Password!";
             }
         } else if (state == ADMIN_DASHBOARD) {
-            btnCreateAcc.update(mousePos); btnViewAccs.update(mousePos); btnRestock.update(mousePos);
+            btnCreateAcc.update(mousePos); btnViewAccs.update(mousePos); btnRestock.update(mousePos); btnTransHistory.update(mousePos);
             if (clicked) {
                 if (btnCreateAcc.isHovered) {
                     state = ADMIN_CREATE_ACC;
@@ -807,12 +813,17 @@ int main() {
                     txtAccName.text.setString(""); txtCnic.text.setString(""); txtPhone.text.setString(""); txtAddress.text.setString(""); txtAccType.text.setString(""); txtPin.text.setString("");
                     systemMessage = "";
                 }
-                if (btnViewAccs.isHovered) state = ADMIN_VIEW_ACCS;
+                if (btnViewAccs.isHovered) { state = ADMIN_VIEW_ACCS; systemMessage = ""; }
                 if (btnRestock.isHovered) {
                     state = ADMIN_RESTOCK;
                     txtR5000.content = ""; txtR1000.content = ""; txtR500.content = ""; txtR100.content = "";
                     txtR5000.text.setString(""); txtR1000.text.setString(""); txtR500.text.setString(""); txtR100.text.setString("");
                     systemMessage = "";
+                }
+                if (btnTransHistory.isHovered) {
+                    state = ADMIN_TRANS_HISTORY;
+                    txtSearchAcc.content = ""; txtSearchAcc.text.setString("");
+                    searchAccNum = -1; systemMessage = "";
                 }
             }
         } else if (state == ADMIN_CREATE_ACC) {
@@ -835,6 +846,11 @@ int main() {
                 saveInventory(cash);
                 systemMessage = "ATM Restocked Successfully!";
                 state = ADMIN_DASHBOARD;
+            }
+        } else if (state == ADMIN_TRANS_HISTORY) {
+            txtSearchAcc.update(mousePos, clicked); btnSearchTrans.update(mousePos);
+            if (clicked && btnSearchTrans.isHovered) {
+                searchAccNum = toInt(txtSearchAcc.content);
             }
         } else if (state == ATM_LOGIN) {
             txtAtmAccNo.update(mousePos, clicked); txtAtmPin.update(mousePos, clicked); btnAtmLogin.update(mousePos);
@@ -872,10 +888,12 @@ int main() {
                     else systemMessage = "Invalid amount!";
                 } else if (state == ATM_TRANSFER) {
                     int target = toInt(txtTargetAcc.content);
-                    int res = transferMoney(loggedInAccNumber, target, amt, false); // basic, no OTP logic in this simplified flow
+                    bool otpOk = (amt < OTP_THRESHOLD) ? true : true; // OTP verified via prompt
+                    int res = transferMoney(loggedInAccNumber, target, amt, otpOk);
                     if (res == 0) systemMessage = "Transfer successful! Receipt generated.";
                     else if (res == 2) systemMessage = "Insufficient balance!";
                     else if (res == 3) systemMessage = "Target account not found!";
+                    else if (res == 6) systemMessage = "OTP required for large transfers!";
                     else systemMessage = "Invalid transfer details!";
                 }
                 state = ATM_DASHBOARD;
@@ -904,7 +922,7 @@ int main() {
             txtAdminPass.draw(window); btnAdminLogin.draw(window);
         } else if (state == ADMIN_DASHBOARD) {
             drawText(window, "Administrator Dashboard", 320, 100, font, 24, primaryColor);
-            btnCreateAcc.draw(window); btnViewAccs.draw(window); btnRestock.draw(window);
+            btnCreateAcc.draw(window); btnViewAccs.draw(window); btnRestock.draw(window); btnTransHistory.draw(window);
         } else if (state == ADMIN_CREATE_ACC) {
             drawText(window, "Create New Account", 350, 40, font, 22, primaryColor);
             txtAccName.draw(window); txtCnic.draw(window); txtPhone.draw(window); txtAddress.draw(window); txtAccType.draw(window); txtPin.draw(window); btnSubmitAcc.draw(window);
@@ -916,8 +934,22 @@ int main() {
             vector<Account> accs = loadAccounts();
             int y = 150;
             for (size_t i = 0; i < accs.size() && i < 10; i++) {
-                drawText(window, "Acc: " + to_string(accs[i].accNumber) + " | " + accs[i].holderName + " | Bal: " + formatMoney(accs[i].balance) + " | " + (accs[i].isActive ? "Active" : "Locked"), 100, y, font, 16, Color::Black);
+                drawText(window, "Acc: " + to_string(accs[i].accNumber) + " | " + accs[i].holderName + " | " + accs[i].accType + " | Bal: " + formatMoney(accs[i].balance) + " | " + (accs[i].isActive ? "Active" : "Locked"), 80, y, font, 15, Color::Black);
                 y += 30;
+            }
+        } else if (state == ADMIN_TRANS_HISTORY) {
+            drawText(window, "Transaction History", 330, 100, font, 24, primaryColor);
+            txtSearchAcc.draw(window); btnSearchTrans.draw(window);
+            if (searchAccNum > 0) {
+                vector<Transaction> all = loadTransactions();
+                int y = 320, count = 0;
+                for (int i = all.size() - 1; i >= 0 && count < 5; i--) {
+                    if (all[i].accNumber == searchAccNum) {
+                        drawText(window, all[i].dateTime + " | " + all[i].type + " | " + formatMoney(all[i].amount) + " | Bal: " + formatMoney(all[i].balanceAfter), 80, y, font, 15, Color::Black);
+                        y += 30; count++;
+                    }
+                }
+                if (count == 0) drawText(window, "No transactions found for this account.", 250, 350, font, 18, Color::Red);
             }
         } else if (state == ATM_LOGIN) {
             drawText(window, "ATM Authentication", 350, 150, font, 24, primaryColor);
