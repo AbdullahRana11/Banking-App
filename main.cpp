@@ -43,7 +43,7 @@ struct Transaction {
     double amount;
     string dateTime;
     double balanceAfter;
-    int targetAccNumber;    // -1 if N/A
+    int targetAccNumber;
 };
 
 struct ATMCash {
@@ -903,7 +903,11 @@ int main() {
             string n = ""; double bal = 0;
             for (size_t i=0; i<accounts.size(); i++) { if (accounts[i].accNumber == loggedInAccNumber) { n = accounts[i].holderName; bal = accounts[i].balance; break; } }
             drawText(window, "Welcome, " + n, 350, 100, font, 24, primaryColor);
-            drawText(window, "Current Balance: " + formatMoney(bal), 320, 400, font, 22, Color(0, 120, 0));
+            drawText(window, "Current Balance: " + formatMoney(bal), 320, 380, font, 22, Color(0, 120, 0));
+            double profit = calculateSavingsProfit(loggedInAccNumber);
+            if (profit > 0) {
+                drawText(window, "Annual Savings Profit (7%): " + formatMoney(profit), 260, 430, font, 20, Color(0, 100, 200));
+            }
             btnWithdraw.draw(window); btnDeposit.draw(window); btnTransfer.draw(window); btnMini.draw(window);
         } else if (state == ATM_WITHDRAW || state == ATM_DEPOSIT || state == ATM_TRANSFER) {
             string title = state == ATM_WITHDRAW ? "Withdraw Cash" : (state == ATM_DEPOSIT ? "Deposit Cash" : "Transfer Funds");
