@@ -734,13 +734,14 @@ int main() {
     Button btnMini(500, 250, 300, 50, "Mini Statement", font, primaryColor);
 
     // Input fields
-    TextBox txtAccName(300, 90, 300, 35, "Holder Name", font);
-    TextBox txtCnic(300, 140, 300, 35, "CNIC (13 digits)", font);
-    TextBox txtPhone(300, 190, 300, 35, "Phone (11 digits)", font);
-    TextBox txtAddress(300, 240, 300, 35, "Address", font);
-    TextBox txtAccType(300, 290, 300, 35, "Type (Savings or Current)", font);
-    TextBox txtPin(300, 340, 300, 35, "Set PIN (4 digits)", font, true);
-    Button btnSubmitAcc(300, 400, 300, 45, "Create", font, primaryColor);
+    TextBox txtAccName(300, 90, 300, 32, "Holder Name", font);
+    TextBox txtCnic(300, 132, 300, 32, "CNIC (13 digits)", font);
+    TextBox txtPhone(300, 174, 300, 32, "Phone (11 digits)", font);
+    TextBox txtAddress(300, 216, 300, 32, "Address", font);
+    TextBox txtAccType(300, 258, 300, 32, "Type (Savings or Current)", font);
+    TextBox txtDeposit(300, 300, 300, 32, "Initial Deposit (Rs.)", font);
+    TextBox txtPin(300, 342, 300, 32, "Set PIN (4 digits)", font, true);
+    Button btnSubmitAcc(300, 395, 300, 40, "Create", font, primaryColor);
 
     // Restock fields
     TextBox txtR5000(300, 150, 300, 40, "No. of 5000 Notes", font);
@@ -771,7 +772,7 @@ int main() {
             if (event.type == Event::MouseButtonPressed && event.mouseButton.button == Mouse::Left) clicked = true;
             
             if (state == ADMIN_LOGIN) txtAdminPass.handleInput(event);
-            if (state == ADMIN_CREATE_ACC) { txtAccName.handleInput(event); txtCnic.handleInput(event); txtPhone.handleInput(event); txtAddress.handleInput(event); txtAccType.handleInput(event); txtPin.handleInput(event); }
+            if (state == ADMIN_CREATE_ACC) { txtAccName.handleInput(event); txtCnic.handleInput(event); txtPhone.handleInput(event); txtAddress.handleInput(event); txtAccType.handleInput(event); txtDeposit.handleInput(event); txtPin.handleInput(event); }
             if (state == ADMIN_RESTOCK) { txtR5000.handleInput(event); txtR1000.handleInput(event); txtR500.handleInput(event); txtR100.handleInput(event); }
             if (state == ADMIN_TRANS_HISTORY) { txtSearchAcc.handleInput(event); }
             if (state == ATM_LOGIN) { txtAtmAccNo.handleInput(event); txtAtmPin.handleInput(event); }
@@ -809,8 +810,8 @@ int main() {
             if (clicked) {
                 if (btnCreateAcc.isHovered) {
                     state = ADMIN_CREATE_ACC;
-                    txtAccName.content = ""; txtCnic.content = ""; txtPhone.content = ""; txtAddress.content = ""; txtAccType.content = ""; txtPin.content = "";
-                    txtAccName.text.setString(""); txtCnic.text.setString(""); txtPhone.text.setString(""); txtAddress.text.setString(""); txtAccType.text.setString(""); txtPin.text.setString("");
+                    txtAccName.content = ""; txtCnic.content = ""; txtPhone.content = ""; txtAddress.content = ""; txtAccType.content = ""; txtDeposit.content = ""; txtPin.content = "";
+                    txtAccName.text.setString(""); txtCnic.text.setString(""); txtPhone.text.setString(""); txtAddress.text.setString(""); txtAccType.text.setString(""); txtDeposit.text.setString(""); txtPin.text.setString("");
                     systemMessage = "";
                 }
                 if (btnViewAccs.isHovered) { state = ADMIN_VIEW_ACCS; systemMessage = ""; }
@@ -829,10 +830,11 @@ int main() {
         } else if (state == ADMIN_CREATE_ACC) {
             txtAccName.update(mousePos, clicked); txtCnic.update(mousePos, clicked);
             txtPhone.update(mousePos, clicked); txtAddress.update(mousePos, clicked);
-            txtAccType.update(mousePos, clicked); txtPin.update(mousePos, clicked); btnSubmitAcc.update(mousePos);
+            txtAccType.update(mousePos, clicked); txtDeposit.update(mousePos, clicked); txtPin.update(mousePos, clicked); btnSubmitAcc.update(mousePos);
             if (clicked && btnSubmitAcc.isHovered) {
                 int p = toInt(txtPin.content);
-                int accNo = createAccount(txtAccName.content, txtCnic.content, txtPhone.content, txtAddress.content, txtAccType.content, 0, p);
+                double dep = toDouble(txtDeposit.content);
+                int accNo = createAccount(txtAccName.content, txtCnic.content, txtPhone.content, txtAddress.content, txtAccType.content, dep, p);
                 if (accNo > 0) { systemMessage = "Success! Account Number: " + to_string(accNo); state = ADMIN_DASHBOARD; }
                 else systemMessage = "Failed. Check inputs (Type must be Savings or Current).";
             }
@@ -925,7 +927,7 @@ int main() {
             btnCreateAcc.draw(window); btnViewAccs.draw(window); btnRestock.draw(window); btnTransHistory.draw(window);
         } else if (state == ADMIN_CREATE_ACC) {
             drawText(window, "Create New Account", 350, 40, font, 22, primaryColor);
-            txtAccName.draw(window); txtCnic.draw(window); txtPhone.draw(window); txtAddress.draw(window); txtAccType.draw(window); txtPin.draw(window); btnSubmitAcc.draw(window);
+            txtAccName.draw(window); txtCnic.draw(window); txtPhone.draw(window); txtAddress.draw(window); txtAccType.draw(window); txtDeposit.draw(window); txtPin.draw(window); btnSubmitAcc.draw(window);
         } else if (state == ADMIN_RESTOCK) {
             drawText(window, "Restock ATM Notes", 350, 100, font, 24, primaryColor);
             txtR5000.draw(window); txtR1000.draw(window); txtR500.draw(window); txtR100.draw(window); btnSubmitRestock.draw(window);
