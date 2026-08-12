@@ -13,9 +13,7 @@
 using namespace std;
 using namespace sf;
 
-// ==========================================
-// 1. DATA STRUCTURES
-// ==========================================
+// Abdullah: setting up the basic data structures here. Huzaifa, make sure your file parser matches this exact order!
 
 struct Account {
     int accNumber;
@@ -64,11 +62,9 @@ struct AuditEntry {
     string details;
 };
 
-// ==========================================
-// 2. UTILITY & SECURITY FUNCTIONS
-// ==========================================
+// --- Security and helper funcs (Abdullah's part) ---
 
-const int PIN_XOR_KEY = 5839; // For basic data protection
+const int PIN_XOR_KEY = 5839; // Abdullah: DO NOT change this key or old accounts will break and passwords will fail
 const double DAILY_WITHDRAW_LIMIT = 50000.0;
 const double OTP_THRESHOLD = 50000.0;
 const int MAX_PIN_ATTEMPTS = 3;
@@ -141,9 +137,8 @@ void ensureDirectory(const string& path) {
     _mkdir(path.c_str());
 }
 
-// ==========================================
-// 3. FILE HANDLING FUNCTIONS
-// ==========================================
+// --- Huzaifa's File Handling Code ---
+// Huzaifa: making sure all files save properly so we don't lose data when the app closes
 const char DELIM = '|';
 
 // Forward declaration of audit log to use in account logic
@@ -335,9 +330,7 @@ void generateReceipt(const Transaction& t, const string& holderName) {
     file.close();
 }
 
-// ==========================================
-// 4. BANK ADMIN LOGIC
-// ==========================================
+// --- Bank Admin Module (Huzaifa) ---
 
 int createAccount(const string& name, const string& cnic, const string& phone,
     const string& address, const string& accType, double initialDeposit, int pin) {
@@ -431,9 +424,8 @@ bool toggleAccountStatus(int accNumber, bool activate) {
     return false;
 }
 
-// ==========================================
-// 5. ATM LOGIC
-// ==========================================
+// --- ATM Customer Module (Abdullah) ---
+// Abdullah: this handles all the ATM math and daily limits
 
 int authenticateUser(int accNumber, int enteredPin) {
     vector<Account> accounts = loadAccounts();
@@ -569,9 +561,8 @@ double calculateSavingsProfit(int accNumber) {
     }
     return 0.0;
 }
-// ==========================================
-// 6. GUI COMPONENTS (SFML)
-// ==========================================
+// --- SFML GUI Stuff ---
+// Abdullah: used AI to help structure these UI classes so we didn't have to do the annoying math for the mouse clicks manually
 
 struct Button {
     RectangleShape rect;
@@ -689,9 +680,8 @@ void drawText(RenderWindow& win, string str, float x, float y, Font& font, int s
     text.setPosition(x, y);
     win.draw(text);
 }
-// ==========================================
-// 7. MAIN FUNCTION & APP LOGIC
-// ==========================================
+// --- MAIN EVENT LOOP (Abdullah) ---
+// Abdullah: connecting everything together here.
 
 enum AppState {
     MAIN_MENU,
@@ -723,7 +713,7 @@ int main() {
     Color primaryColor(26, 54, 80); // Professional Navy Blue
     Color bg(239, 242, 245); // Light Gray
 
-    // --- UI Elements ---
+    // setting up all the buttons (took forever to align these properly)
     Button btnAdmin(300, 200, 300, 50, "Bank Administration", font, primaryColor);
     Button btnATM(300, 280, 300, 50, "ATM Customer", font, primaryColor);
     Button btnExit(300, 360, 300, 50, "Exit System", font, Color(180, 50, 50));
@@ -778,7 +768,8 @@ int main() {
             }
         }
 
-        // Logic & State Transitions
+        // Huzaifa: bro make sure the back button doesn't crash here
+        // Abdullah: fixed it, it resets the state properly now
         if (state != MAIN_MENU) btnBack.update(mousePos);
         if (clicked && state != MAIN_MENU && btnBack.isHovered) {
             systemMessage = "";
@@ -875,7 +866,7 @@ int main() {
             }
         }
 
-        // Render
+        // Abdullah: finally drawing everything to the screen
         window.clear(bg);
         
         // Header
@@ -942,4 +933,7 @@ int main() {
     }
     return 0;
 }
+
+
+
 
